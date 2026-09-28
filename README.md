@@ -28,7 +28,8 @@ terraform/
 scripts/
   provision-sites.ps1     # cria sites de comunicacao + hub
   apply-theme.ps1          # aplica tema de marca
-  setup-client-folders.ps1 # estrutura de pastas por cliente
+  setup-client-folders.ps1 # estrutura de pastas por cliente + link de upload externo
+  external-sharing.ps1     # compartilhamento externo com OTP (tenant + sites)
   transport-rules.ps1      # regras de transporte do Exchange
   entra-join-policy.ps1    # politica de Entra Join dos dispositivos
 ```
@@ -65,6 +66,7 @@ pwsh
 Connect-PnPOnline -Url https://<tenant>-admin.sharepoint.com -ClientId $env:PNP_CLIENT_ID -Interactive
 ./scripts/provision-sites.ps1
 ./scripts/apply-theme.ps1
+./scripts/external-sharing.ps1 -SiteSlugs <site>
 ./scripts/setup-client-folders.ps1 -SiteUrl https://<tenant>.sharepoint.com/sites/<site> -Clients "Cliente A","Cliente B"
 
 Connect-ExchangeOnline -UserPrincipalName admin@<tenant>.onmicrosoft.com
@@ -75,6 +77,21 @@ Regras de transporte incluídas:
 
 - **Aviso de e-mail externo**: banner no topo de mensagens vindas de fora da organização
 - **Bloquear encaminhamento automático externo**: rejeita auto-forward para destinatários externos
+
+### Upload externo com OTP
+
+O `external-sharing.ps1` libera compartilhamento externo só para pessoas específicas, com código de verificação por e-mail. Links "qualquer pessoa" continuam bloqueados, o acesso do convidado expira em 60 dias e o código é pedido de novo a cada 30.
+
+> **Atenção:** ele muda o teto de compartilhamento do tenant inteiro. Sites que hoje usam links "qualquer pessoa" deixam de poder usá-los.
+
+Para gerar o link de upload de cada cliente, passe os e-mails no `setup-client-folders.ps1`. O link vale só para a pasta `Recebidos` daquele cliente:
+
+```powershell
+./scripts/setup-client-folders.ps1 -SiteUrl https://<tenant>.sharepoint.com/sites/<site> `
+  -Clients "Cliente A" -ClientEmails @{ "Cliente A" = "contato@clientea.com.br" }
+```
+
+O script imprime o link. O cliente abre, recebe o código no e-mail e consegue enviar arquivos. O SharePoint não tem permissão "só upload" para pessoas específicas, então o link dá edição, mas apenas nessa pasta. O código por e-mail para convidados depende do provedor *Email one-time passcode* estar ativo no Entra ID (*External Identities > Todos os provedores de identidade*), que já vem ativo por padrão.
 
 ### Entra Join
 
