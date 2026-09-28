@@ -1,0 +1,6 @@
+# Copie para terraform.tfvars e ajuste. Nunca commitar o terraform.tfvars real.
+security_groups = {
+  "SG-Diretoria"  = { description = "Acesso da diretoria" }
+  "SG-Financeiro" = { description = "Equipe financeira" }
+  "SG-Juridico"   = { description = "Equipe juridica" }
+}

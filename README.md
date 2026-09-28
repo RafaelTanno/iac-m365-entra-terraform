@@ -58,9 +58,10 @@ terraform apply
 
 ```powershell
 pwsh
-Connect-PnPOnline -Url https://<tenant>.sharepoint.com -ClientId $env:PNP_CLIENT_ID -Interactive
+Connect-PnPOnline -Url https://<tenant>-admin.sharepoint.com -ClientId $env:PNP_CLIENT_ID -Interactive
 ./scripts/provision-sites.ps1
 ./scripts/apply-theme.ps1
+./scripts/setup-client-folders.ps1 -SiteUrl https://<tenant>.sharepoint.com/sites/<site> -Clients "Cliente A","Cliente B"
 ```
 
 ## Armadilhas que já custaram tempo
