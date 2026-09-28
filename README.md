@@ -14,6 +14,7 @@ Parametrização de tenant Microsoft 365 (Entra ID + SharePoint) via Terraform +
 
 - **Terraform** (provider `azuread` / `azurerm`) para grupos do Entra ID e recursos base
 - **PowerShell 7 (pwsh) + PnP.PowerShell** para provisionamento do SharePoint (sites, temas, bibliotecas)
+- **PowerShell 7 (pwsh) + ExchangeOnlineManagement** para regras de transporte do Exchange
 
 ## Estrutura
 
@@ -27,13 +28,14 @@ scripts/
   provision-sites.ps1     # cria sites de comunicacao + hub
   apply-theme.ps1          # aplica tema de marca
   setup-client-folders.ps1 # estrutura de pastas por cliente
+  transport-rules.ps1      # regras de transporte do Exchange
 ```
 
 ## Requisitos
 
 - Terraform 1.x
 - PowerShell 7 (**pwsh**, não o PowerShell 5.1 padrão do Windows — o PnP.PowerShell não roda bem na 5.1)
-- Módulo `PnP.PowerShell` instalado
+- Módulos `PnP.PowerShell` e `ExchangeOnlineManagement` instalados
 - App registration no Entra ID com permissões de Sites.FullControl.All / Group.ReadWrite.All (delegadas ou app-only conforme o fluxo de auth escolhido)
 
 ## Variáveis (não versionar valores reais)
@@ -62,7 +64,15 @@ Connect-PnPOnline -Url https://<tenant>-admin.sharepoint.com -ClientId $env:PNP_
 ./scripts/provision-sites.ps1
 ./scripts/apply-theme.ps1
 ./scripts/setup-client-folders.ps1 -SiteUrl https://<tenant>.sharepoint.com/sites/<site> -Clients "Cliente A","Cliente B"
+
+Connect-ExchangeOnline -UserPrincipalName admin@<tenant>.onmicrosoft.com
+./scripts/transport-rules.ps1
 ```
+
+Regras de transporte incluídas:
+
+- **Aviso de e-mail externo**: banner no topo de mensagens vindas de fora da organização
+- **Bloquear encaminhamento automático externo**: rejeita auto-forward para destinatários externos
 
 ## Armadilhas que já custaram tempo
 
