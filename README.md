@@ -15,6 +15,7 @@ Parametrização de tenant Microsoft 365 (Entra ID + SharePoint) via Terraform +
 - **Terraform** (provider `azuread` / `azurerm`) para grupos do Entra ID e recursos base
 - **PowerShell 7 (pwsh) + PnP.PowerShell** para provisionamento do SharePoint (sites, temas, bibliotecas)
 - **PowerShell 7 (pwsh) + ExchangeOnlineManagement** para regras de transporte do Exchange
+- **PowerShell 7 (pwsh) + Microsoft.Graph** para a política de Entra Join
 
 ## Estrutura
 
@@ -29,13 +30,14 @@ scripts/
   apply-theme.ps1          # aplica tema de marca
   setup-client-folders.ps1 # estrutura de pastas por cliente
   transport-rules.ps1      # regras de transporte do Exchange
+  entra-join-policy.ps1    # politica de Entra Join dos dispositivos
 ```
 
 ## Requisitos
 
 - Terraform 1.x
 - PowerShell 7 (**pwsh**, não o PowerShell 5.1 padrão do Windows — o PnP.PowerShell não roda bem na 5.1)
-- Módulos `PnP.PowerShell` e `ExchangeOnlineManagement` instalados
+- Módulos `PnP.PowerShell`, `ExchangeOnlineManagement` e `Microsoft.Graph.Authentication` instalados
 - App registration no Entra ID com permissões de Sites.FullControl.All / Group.ReadWrite.All (delegadas ou app-only conforme o fluxo de auth escolhido)
 
 ## Variáveis (não versionar valores reais)
@@ -73,6 +75,18 @@ Regras de transporte incluídas:
 
 - **Aviso de e-mail externo**: banner no topo de mensagens vindas de fora da organização
 - **Bloquear encaminhamento automático externo**: rejeita auto-forward para destinatários externos
+
+### Entra Join
+
+A política do tenant (quem pode ingressar, MFA, admin local, LAPS) é aplicada pelo script, usando o grupo `SG-Entra-Join` criado pelo Terraform:
+
+```powershell
+Connect-MgGraph -Scopes Policy.ReadWrite.DeviceConfiguration
+$groups = terraform -chdir=terraform output -json security_group_ids | ConvertFrom-Json
+./scripts/entra-join-policy.ps1 -JoinGroupIds $groups.'SG-Entra-Join'
+```
+
+Padrões: MFA obrigatório para ingressar, até 20 dispositivos por usuário, quem ingressa **não** vira admin local, LAPS habilitado. O ingresso em si é feito em cada dispositivo: *Configurações > Contas > Acessar trabalho ou escola > Conectar > Ingressar este dispositivo no Microsoft Entra ID*.
 
 ## Armadilhas que já custaram tempo
 

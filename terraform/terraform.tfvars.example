@@ -3,4 +3,5 @@ security_groups = {
   "SG-Diretoria"  = { description = "Acesso da diretoria" }
   "SG-Financeiro" = { description = "Equipe financeira" }
   "SG-Juridico"   = { description = "Equipe juridica" }
+  "SG-Entra-Join" = { description = "Usuarios autorizados a ingressar dispositivos no Entra ID" }
 }
